@@ -1,7 +1,8 @@
-require('dotenv').config();
+require('dotenv').config()
 const yargs = require('yargs');
 const request = require('request');
-const geocode = require('../geocode/geocode.js');
+const geocode = require('../geocode/geocode');
+const weather = require('../weather/weather');
 const argv = yargs
     .options({
         a: {
@@ -20,15 +21,12 @@ geocode.geocodeAddress(address, (errorMessage, result) => {
         console.log(errorMessage);
     } else {
         console.log(JSON.stringify(result, undefined, 2));
+        weather.getWeather(result.latitude, result.longitude, (errorMessage, weatherResult) => {
+            if (errorMessage) {
+                console.log(errorMessage);
+            } else {
+                console.log(`Currently it's ${weatherResult.currently.temperature}°C, but it feels like ${weatherResult.currently.apparentTemperature}°C`);
+            }
+        });
     }
 });
-
-request({
-    url: `https://api.darksky.net/forecast/${process.env.FORECAST_SECRET}/37.8267,-122.4233`,
-    json: true
-}, (error, request, body) => {
-    if (error) {
-        console.log('Unable to connect to Forecast.io server')
-    }
-    console.log('Temperature', body.currently.temperature);
-})
